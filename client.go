@@ -4,8 +4,10 @@ package httpclient
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -75,6 +77,39 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	return c.Client.Do(req)
+}
+
+// Make a GET request
+func (c *Client) Get(url string) (resp *http.Response, err error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.Do(req)
+}
+
+// Make a HEAD request
+func (c *Client) Head(url string) (resp *http.Response, err error) {
+	req, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.Do(req)
+}
+
+// Make a POST request
+func (c *Client) Post(url string, contentType string, body io.Reader) (resp *http.Response, err error) {
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+	return c.Do(req)
+}
+
+// Make a POST request with encoded form values
+func (c *Client) PostForm(url string, data url.Values) (resp *http.Response, err error) {
+	return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
 }
 
 // Wraps request with additions from the client

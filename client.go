@@ -3,6 +3,8 @@
 package httpclient
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -110,6 +112,15 @@ func (c *Client) Post(url string, contentType string, body io.Reader) (resp *htt
 // Make a POST request with encoded form values
 func (c *Client) PostForm(url string, data url.Values) (resp *http.Response, err error) {
 	return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
+}
+
+// Make a POST request with encoded JSON body
+func (c *Client) PostJson(url string, data interface{}) (resp *http.Response, err error) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return c.Post(url, "application/json", bytes.NewReader(body))
 }
 
 // Wraps request with additions from the client

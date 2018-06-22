@@ -39,6 +39,12 @@ type Client struct {
 
 	// URL of a proxy to use for all requests
 	Proxy string
+
+	// If not nil, BeforeRequest is called on each Request before it is
+	// sent. If this function returns an error, the request is not sent.
+	// This can be used to globally transform or log all requests before sending
+	// them, or to filter which requests get sent
+	BeforeRequest func(*http.Request) error
 }
 
 // Initializes a new http client
@@ -86,6 +92,13 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	req, err := c.prepareRequest(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if c.BeforeRequest != nil {
+		err := c.BeforeRequest(req)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return c.Client.Do(req)

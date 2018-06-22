@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -15,7 +16,7 @@ import (
 
 var (
 	// Default timeout for requests
-	Timeout = 60 * time.Second
+	Timeout = 30 * time.Second
 
 	// Default headers for all requests
 	Headers = map[string]string{
@@ -54,8 +55,17 @@ func New() *Client {
 	}
 
 	tr := &http.Transport{
-		Proxy:               c.proxy,
-		MaxIdleConnsPerHost: MaxConnsPerHost,
+		Proxy: c.proxy,
+		DialContext: (&net.Dialer{
+			Timeout:   Timeout,
+			KeepAlive: Timeout,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   MaxConnsPerHost,
+		IdleConnTimeout:       3 * Timeout,
+		TLSHandshakeTimeout:   Timeout,
+		ExpectContinueTimeout: 1 * time.Second,
 	}
 	c.Transport = tr
 	return c

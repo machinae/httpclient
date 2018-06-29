@@ -3,7 +3,9 @@ package httpclient
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -28,4 +30,21 @@ func TestBeforeRequest(t *testing.T) {
 	resp, err := c.Get("http://www.example.com")
 	assert.Error(err)
 	assert.Nil(resp)
+}
+
+func TestCopy(t *testing.T) {
+	u, _ := url.Parse("http://www.example.com")
+	cookies := []*http.Cookie{&http.Cookie{Name: "k", Value: "v"}}
+	assert := assert.New(t)
+	c := New()
+	c.Client.Timeout = 5 * time.Second
+	c.Jar.SetCookies(u, cookies)
+	c.Headers["h1"] = "v1"
+	c.Proxy = "socks5://localhost:9000"
+
+	c2 := c.Copy()
+	assert.NotEqual(c, c2)
+	assert.NotEqual(c.Client, c2.Client)
+	// assert.NotEqual(c.Client.Jar, c2.Client.Jar)
+
 }

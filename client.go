@@ -165,3 +165,23 @@ func (c *Client) setHeaders(req *http.Request) {
 		}
 	}
 }
+
+// Copy returns a deep copy of the Client
+// The underlying transport is not copied
+func (c *Client) Copy() *Client {
+	c2 := New()
+
+	// copy stdlib Client
+	c2.Client.CheckRedirect = c.Client.CheckRedirect
+	// TODO points to the same Cookie Jar, create own cookie jar
+	// implementation that can be deep copied
+	c2.Client.Jar = c.Client.Jar
+	c2.Client.Timeout = c.Client.Timeout
+
+	for k, v := range c.Headers {
+		c2.Headers[k] = v
+	}
+	c2.Proxy = c.Proxy
+	c2.BeforeRequest = c.BeforeRequest
+	return c2
+}
